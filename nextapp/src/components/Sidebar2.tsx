@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { LayoutDashboard, Users, Settings, Menu, X } from "lucide-react";
 
-const Sidebar = () => {
+const Sidebar2 = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -26,4 +26,4 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar;
+export default Sidebar2 ;
