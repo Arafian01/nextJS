@@ -19,7 +19,7 @@ const Navbar = () => {
 
           {/* Menu Desktop */}
           <div className="hidden md:flex space-x-6">
-            {["Home", "About", "Services", "Contact"].map((item, index) => (
+            {["Dashboard", "Users", "Services", "Contact"].map((item, index) => (
               <Link key={index} href={`/${item.toLowerCase()}`} className="text-gray-700 dark:text-gray-300 hover:text-blue-500 transition">
                 {item}
               </Link>
