@@ -16,8 +16,8 @@ export default function Page() {
   }, []);
 
   return (
-    <div className="min-h-screen p-8 bg-gray-100">
-        <div className="container mx-auto">
+    <div className="min-h-screen bg-gray-100">
+        <div className="container mx-auto bg-white px-8">
             <h1 className="text-2xl font-bold mb-4">User Management</h1>
             <TableComponent />
         </div>

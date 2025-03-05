@@ -1,5 +1,5 @@
 // src/components/TableComponent.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 interface User {
   id: number;
@@ -9,8 +9,8 @@ interface User {
 
 const TableComponent: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [newUser, setNewUser] = useState({ name: '', email: '' });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [newUser, setNewUser] = useState({ name: "", email: "" });
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false); // Modal tambah
   const [isEditModalOpen, setIsEditModalOpen] = useState(false); // Modal edit
@@ -23,7 +23,7 @@ const TableComponent: React.FC = () => {
 
   // Fetch data from public/users.json
   useEffect(() => {
-    fetch('/users.json')
+    fetch("/users.json")
       .then((res) => res.json())
       .then((data) => setUsers(data));
   }, []);
@@ -46,10 +46,11 @@ const TableComponent: React.FC = () => {
   // Handle add user
   const handleAddUser = () => {
     if (newUser.name && newUser.email) {
-      const newId = users.length > 0 ? Math.max(...users.map((u) => u.id)) + 1 : 1;
+      const newId =
+        users.length > 0 ? Math.max(...users.map((u) => u.id)) + 1 : 1;
       const updatedUsers = [...users, { id: newId, ...newUser }];
       setUsers(updatedUsers);
-      setNewUser({ name: '', email: '' });
+      setNewUser({ name: "", email: "" });
       setIsAddModalOpen(false); // Tutup modal tambah
     }
   };
@@ -78,22 +79,24 @@ const TableComponent: React.FC = () => {
 
   return (
     <div className="p-4">
-      {/* Search Bar */}
-      <input
-        type="text"
-        placeholder="Search by name..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="border p-2 mb-4 w-full"
-      />
+      <div className="flex justify-between px-10 mb-5">
+        {/* Search Bar */}
+        <input
+          type="text"
+          placeholder="Search by name..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="border p-2  w-[200px]"
+        />
 
-      {/* Tombol Tambah Data */}
-      <button
-        onClick={() => setIsAddModalOpen(true)} // Buka modal tambah
-        className="bg-blue-500 text-white px-4 py-2 rounded mb-5"
-      >
-        Tambah Data
-      </button>
+        {/* Tombol Tambah Data */}
+        <button
+          onClick={() => setIsAddModalOpen(true)} // Buka modal tambah
+          className="bg-blue-500 text-white px-4 py-2 rounded "
+        >
+          Tambah Data
+        </button>
+      </div>
 
       {/* Table */}
       <table className="w-full border-collapse border">
@@ -138,7 +141,7 @@ const TableComponent: React.FC = () => {
       </table>
 
       {/* Pagination */}
-      <div className="flex justify-center mt-4">
+      <div className="flex justify-around mt-4">
         <button
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
@@ -168,14 +171,18 @@ const TableComponent: React.FC = () => {
                 type="text"
                 placeholder="Name"
                 value={newUser.name}
-                onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+                onChange={(e) =>
+                  setNewUser({ ...newUser, name: e.target.value })
+                }
                 className="border p-2 w-full mb-2"
               />
               <input
                 type="email"
                 placeholder="Email"
                 value={newUser.email}
-                onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                onChange={(e) =>
+                  setNewUser({ ...newUser, email: e.target.value })
+                }
                 className="border p-2 w-full"
               />
             </div>
@@ -245,7 +252,9 @@ const TableComponent: React.FC = () => {
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
             <h2 className="text-xl font-bold mb-4">Konfirmasi Penghapusan</h2>
-            <p className="mb-4">Apakah Anda yakin ingin menghapus pengguna ini?</p>
+            <p className="mb-4">
+              Apakah Anda yakin ingin menghapus pengguna ini?
+            </p>
             <div className="flex justify-end">
               <button
                 onClick={() => setIsDeleteModalOpen(false)} // Tutup modal
