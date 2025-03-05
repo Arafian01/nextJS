@@ -17,6 +17,10 @@ const TableComponent: React.FC = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // Modal hapus
   const [userToDelete, setUserToDelete] = useState<number | null>(null); // ID user yang akan dihapus
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1); // Halaman saat ini
+  const itemsPerPage = 5; // Jumlah item per halaman
+
   // Fetch data from public/users.json
   useEffect(() => {
     fetch('/users.json')
@@ -28,6 +32,16 @@ const TableComponent: React.FC = () => {
   const filteredUsers = users.filter((user) =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   // Handle add user
   const handleAddUser = () => {
@@ -80,6 +94,69 @@ const TableComponent: React.FC = () => {
       >
         Tambah Data
       </button>
+
+      {/* Table */}
+      <table className="w-full border-collapse border">
+        <thead>
+          <tr className="bg-gray-200">
+            <th className="border p-2">No.</th>
+            <th className="border p-2">Name</th>
+            <th className="border p-2">Email</th>
+            <th className="border p-2">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {currentItems.map((user, index) => (
+            <tr key={user.id} className="border">
+              {/* Nomor urut dimulai dari 1 di setiap halaman */}
+              <td className="border p-2">{index + 1}</td>
+              <td className="border p-2">{user.name}</td>
+              <td className="border p-2">{user.email}</td>
+              <td className="border p-2">
+                <button
+                  onClick={() => {
+                    setEditingUser(user);
+                    setIsEditModalOpen(true);
+                  }}
+                  className="bg-yellow-500 text-white px-2 py-1 rounded mr-2"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => {
+                    setUserToDelete(user.id);
+                    setIsDeleteModalOpen(true);
+                  }}
+                  className="bg-red-500 text-white px-2 py-1 rounded"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/* Pagination */}
+      <div className="flex justify-center mt-4">
+        <button
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="bg-gray-300 text-gray-700 px-4 py-2 rounded mr-2 disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <span className="px-4 py-2">
+          Page {currentPage} of {Math.ceil(filteredUsers.length / itemsPerPage)}
+        </span>
+        <button
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={indexOfLastItem >= filteredUsers.length}
+          className="bg-gray-300 text-gray-700 px-4 py-2 rounded ml-2 disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
 
       {/* Modal Tambah */}
       {isAddModalOpen && (
@@ -186,47 +263,6 @@ const TableComponent: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* Table */}
-      <table className="w-full border-collapse border">
-        <thead>
-          <tr className="bg-gray-200">
-            <th className="border p-2">ID</th>
-            <th className="border p-2">Name</th>
-            <th className="border p-2">Email</th>
-            <th className="border p-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredUsers.map((user) => (
-            <tr key={user.id} className="border">
-              <td className="border p-2">{user.id}</td>
-              <td className="border p-2">{user.name}</td>
-              <td className="border p-2">{user.email}</td>
-              <td className="border p-2">
-                <button
-                  onClick={() => {
-                    setEditingUser(user);
-                    setIsEditModalOpen(true);
-                  }}
-                  className="bg-yellow-500 text-white px-2 py-1 rounded mr-2"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => {
-                    setUserToDelete(user.id);
-                    setIsDeleteModalOpen(true);
-                  }}
-                  className="bg-red-500 text-white px-2 py-1 rounded"
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </div>
   );
 };
