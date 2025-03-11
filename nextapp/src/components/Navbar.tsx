@@ -19,7 +19,7 @@ const Navbar = () => {
 
           {/* Menu Desktop */}
           <div className="hidden md:flex space-x-6">
-            {["Dashboard", "Users", "Services", "Contact"].map((item, index) => (
+            {["Dashboard", "Users", "Room", "Bookings"].map((item, index) => (
               <Link key={index} href={`/${item.toLowerCase()}`} className="text-gray-700 dark:text-gray-300 hover:text-blue-500 transition">
                 {item}
               </Link>
@@ -45,7 +45,7 @@ const Navbar = () => {
           className="md:hidden bg-white dark:bg-gray-800 shadow-md p-4"
         >
           <div className="flex flex-col space-y-4">
-            {["Home", "About", "Services", "Contact"].map((item, index) => (
+            {["Home", "About", "Room Management", "Bookings"].map((item, index) => (
               <Link
                 key={index}
                 href={`/${item.toLowerCase()}`}
