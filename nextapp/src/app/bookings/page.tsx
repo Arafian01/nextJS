@@ -26,15 +26,16 @@ const Bookings = () => {
     setSearchQuery(e.target.value);
   };
 
-  const filteredBookings = bookings.filter((booking) => 
-    booking.room.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    booking.bookedBy.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    booking.bookingDate.toDateString().includes(searchQuery)
+  const filteredBookings = bookings.filter(
+    (booking) =>
+      booking.room.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      booking.bookedBy.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      booking.bookingDate.toDateString().includes(searchQuery)
   );
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-md p-6 w-full max-w-4xl">
+    <div className="min-h-screen bg-gray-100 flex justify-center p-9">
+      <div className="bg-white rounded-lg shadow-md p-6 w-full max-w-7xl h-full">
         {/* Header Section */}
         <div className="flex justify-between items-center mb-6">
           <input
@@ -50,38 +51,43 @@ const Bookings = () => {
         </div>
 
         {/* Table Section */}
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="px-4 py-2">No</th>
-                <th className="px-4 py-2">Room</th>
-                <th className="px-4 py-2">Booking Date</th>
-                <th className="px-4 py-2">Booked By</th>
-                <th className="px-4 py-2">Price</th>
-                <th className="px-4 py-2">Action</th>
+        <div className="overflow-x-auto shadow-lg">
+          <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+            <thead className="text-sm text-gray-700 uppercase bg-white dark:bg-gray-800 ">
+              <tr className="bg-white border-t border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                <th className="px-6 py-3 text-center">NO</th>
+                <th className="px-6 py-3 text-center">Room</th>
+                <th className="px-6 py-3 text-center">Booking Date</th>
+                <th className="px-6 py-3 text-center">Booked By</th>
+                <th className="px-6 py-3 text-center">Price</th>
+                <th className="px-6 py-3 text-center">Action</th>
               </tr>
             </thead>
             <tbody>
               {filteredBookings.map((booking, index) => (
-                <tr key={booking.id} className="border-t">
+                <tr
+                  key={booking.id}
+                  className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                >
                   <td className="px-4 py-2 text-center">{index + 1}</td>
-                  <td className="px-4 py-2">{booking.room}</td>
+                  <td className="px-4 py-2 text-center">{booking.room}</td>
                   <td className="px-4 py-2 text-center">
-                    {new Intl.DateTimeFormat('id-ID').format(booking.bookingDate)}
+                    {new Intl.DateTimeFormat("id-ID").format(
+                      booking.bookingDate
+                    )}
                   </td>
                   <td className="px-4 py-2 text-center">{booking.bookedBy}</td>
                   <td className="px-4 py-2 text-right">
-                    {new Intl.NumberFormat('id-ID', {
-                      style: 'currency',
-                      currency: 'IDR',
+                    {new Intl.NumberFormat("id-ID", {
+                      style: "currency",
+                      currency: "IDR",
                     }).format(booking.price)}
                   </td>
                   <td className="px-4 py-2 flex justify-center space-x-2">
-                    <button className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 transition">
+                    <button className="focus:outline-none text-gray-50 bg-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:ring-yellow-300 font-medium rounded-lg text-xs px-5 py-2.5 me-2 mb-2 dark:focus:ring-yellow-900">
                       Edit
                     </button>
-                    <button className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition">
+                    <button className="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-xs px-5 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
                       Delete
                     </button>
                   </td>
