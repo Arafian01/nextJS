@@ -17,7 +17,7 @@ const Bookings = () => {
       id: 1,
       room: "Auditorium Utama",
       bookingDate: new Date("2025-06-13"),
-      bookedBy: "Rouasd Team",
+      bookedBy: "Rouasd",
       price: 3500000,
     },
   ]);
