@@ -94,7 +94,7 @@ const BookingManagement = () => {
     return user ? user.name : "Unknown User";
   };
 
-  // Filtering: cari berdasarkan ID, room name, booking date, user name
+  // Filtering: cari berdasarkan ID, room name, booking date, user name, atau price
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
@@ -107,7 +107,8 @@ const BookingManagement = () => {
       booking.id.toString().includes(searchLower) ||
       roomName.includes(searchLower) ||
       booking.bookingDate.toLowerCase().includes(searchLower) ||
-      bookedByName.includes(searchLower)
+      bookedByName.includes(searchLower) ||
+      booking.price.toString().includes(searchLower)
     );
   });
 
@@ -133,7 +134,7 @@ const BookingManagement = () => {
       const bName = getUserName(b.bookedBy);
       return sortOrder === "asc" ? aName.localeCompare(bName) : bName.localeCompare(aName);
     }
-    // Untuk field lainnya (misal id, bookingDate)
+    // Untuk field lainnya (misal id, bookingDate, price)
     const aValue = a[sortField as keyof Booking];
     const bValue = b[sortField as keyof Booking];
     if (typeof aValue === "number" && typeof bValue === "number") {
@@ -228,6 +229,9 @@ const BookingManagement = () => {
                 <th onClick={() => handleSort("bookedBy")} className="px-6 py-3 text-center cursor-pointer select-none">
                   Booked By {renderSortIndicator("bookedBy")}
                 </th>
+                <th onClick={() => handleSort("price")} className="px-6 py-3 text-center cursor-pointer select-none">
+                  Price {renderSortIndicator("price")}
+                </th>
                 <th className="px-6 py-3 text-center">Action</th>
               </tr>
             </thead>
@@ -240,6 +244,12 @@ const BookingManagement = () => {
                     {new Date(booking.bookingDate).toLocaleDateString("id-ID")}
                   </td>
                   <td className="px-4 py-2 text-center">{getUserName(booking.bookedBy)}</td>
+                  <td className="px-4 py-2 text-center">
+                    {new Intl.NumberFormat("id-ID", {
+                      style: "currency",
+                      currency: "IDR",
+                    }).format(booking.price)}
+                  </td>
                   <td className="px-4 py-2 text-center">
                     <div className="flex flex-col space-y-1">
                       <button
