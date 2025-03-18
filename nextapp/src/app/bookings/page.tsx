@@ -7,13 +7,13 @@ type Booking = {
   roomId: number;      // ID ruangan yang dipesan
   bookingDate: string; // Format YYYY-MM-DD
   bookedBy: number;    // ID user yang memesan
-  price: number;
+  price: number;       // Diambil dari room.price
 };
 
 type RoomData = {
   id: number;
   name: string;
-  // properti lain tidak ditampilkan di sini
+  price: number;
 };
 
 type UserData = {
@@ -39,7 +39,7 @@ const BookingManagement = () => {
   const initialModalBooking: Booking = {
     id: 0,
     roomId: 0,
-    bookingDate: "",
+    bookingDate: new Date().toISOString().slice(0, 10), // default tanggal sekarang
     bookedBy: 0,
     price: 0,
   };
@@ -94,7 +94,7 @@ const BookingManagement = () => {
     return user ? user.name : "Unknown User";
   };
 
-  // Filtering: cari berdasarkan id, room name, booking date, user name, atau price
+  // Filtering: cari berdasarkan ID, room name, booking date, user name
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
@@ -107,12 +107,11 @@ const BookingManagement = () => {
       booking.id.toString().includes(searchLower) ||
       roomName.includes(searchLower) ||
       booking.bookingDate.toLowerCase().includes(searchLower) ||
-      bookedByName.includes(searchLower) ||
-      booking.price.toString().includes(searchLower)
+      bookedByName.includes(searchLower)
     );
   });
 
-  // Sorting: jika sortField adalah "room" atau "bookedBy", sorting berdasarkan nama
+  // Sorting: untuk field "room" dan "bookedBy" sorting berdasarkan nama
   const handleSort = (field: string) => {
     if (sortField === field) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -134,7 +133,7 @@ const BookingManagement = () => {
       const bName = getUserName(b.bookedBy);
       return sortOrder === "asc" ? aName.localeCompare(bName) : bName.localeCompare(aName);
     }
-    // Untuk field lainnya (misal id, bookingDate, price)
+    // Untuk field lainnya (misal id, bookingDate)
     const aValue = a[sortField as keyof Booking];
     const bValue = b[sortField as keyof Booking];
     if (typeof aValue === "number" && typeof bValue === "number") {
@@ -159,18 +158,23 @@ const BookingManagement = () => {
     return "";
   };
 
-  // CRUD: Tambah/Edit Booking
+  // CRUD: Tambah atau Edit Booking melalui modal
   const handleModalSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // Ambil harga dari room yang dipilih
+    const selectedRoom = rooms.find((r) => r.id === modalBooking.roomId);
+    const derivedPrice = selectedRoom ? selectedRoom.price : 0;
+    const bookingData: Booking = { ...modalBooking, price: derivedPrice };
+
     if (isEditMode) {
       // Update booking
       setBookings((prev) =>
-        prev.map((booking) => (booking.id === modalBooking.id ? modalBooking : booking))
+        prev.map((booking) => (booking.id === bookingData.id ? bookingData : booking))
       );
     } else {
       // Tambah booking baru dengan ID baru
       const newId = bookings.length > 0 ? Math.max(...bookings.map((b) => b.id)) + 1 : 1;
-      setBookings((prev) => [...prev, { ...modalBooking, id: newId }]);
+      setBookings((prev) => [...prev, { ...bookingData, id: newId }]);
     }
     closeModal();
     setModalBooking(initialModalBooking);
@@ -196,7 +200,8 @@ const BookingManagement = () => {
           />
           <button
             onClick={() => {
-              setModalBooking(initialModalBooking);
+              // Set default tanggal ke hari ini
+              setModalBooking({ ...initialModalBooking, bookingDate: new Date().toISOString().slice(0, 10) });
               setIsEditMode(false);
               openModal();
             }}
@@ -211,35 +216,17 @@ const BookingManagement = () => {
           <table className="w-full text-sm text-left text-gray-500">
             <thead className="text-sm text-gray-700 uppercase bg-white">
               <tr className="bg-white border-t border-b hover:bg-gray-50">
-                <th
-                  onClick={() => handleSort("id")}
-                  className="px-6 py-3 text-center cursor-pointer select-none"
-                >
+                <th onClick={() => handleSort("id")} className="px-6 py-3 text-center cursor-pointer select-none">
                   ID {renderSortIndicator("id")}
                 </th>
-                <th
-                  onClick={() => handleSort("room")}
-                  className="px-6 py-3 text-center cursor-pointer select-none"
-                >
+                <th onClick={() => handleSort("room")} className="px-6 py-3 text-center cursor-pointer select-none">
                   Room {renderSortIndicator("room")}
                 </th>
-                <th
-                  onClick={() => handleSort("bookingDate")}
-                  className="px-6 py-3 text-center cursor-pointer select-none"
-                >
+                <th onClick={() => handleSort("bookingDate")} className="px-6 py-3 text-center cursor-pointer select-none">
                   Booking Date {renderSortIndicator("bookingDate")}
                 </th>
-                <th
-                  onClick={() => handleSort("bookedBy")}
-                  className="px-6 py-3 text-center cursor-pointer select-none"
-                >
+                <th onClick={() => handleSort("bookedBy")} className="px-6 py-3 text-center cursor-pointer select-none">
                   Booked By {renderSortIndicator("bookedBy")}
-                </th>
-                <th
-                  onClick={() => handleSort("price")}
-                  className="px-6 py-3 text-center cursor-pointer select-none"
-                >
-                  Price {renderSortIndicator("price")}
                 </th>
                 <th className="px-6 py-3 text-center">Action</th>
               </tr>
@@ -253,12 +240,6 @@ const BookingManagement = () => {
                     {new Date(booking.bookingDate).toLocaleDateString("id-ID")}
                   </td>
                   <td className="px-4 py-2 text-center">{getUserName(booking.bookedBy)}</td>
-                  <td className="px-4 py-2 text-center">
-                    {new Intl.NumberFormat("id-ID", {
-                      style: "currency",
-                      currency: "IDR",
-                    }).format(booking.price)}
-                  </td>
                   <td className="px-4 py-2 text-center">
                     <div className="flex flex-col space-y-1">
                       <button
@@ -299,9 +280,7 @@ const BookingManagement = () => {
               key={i + 1}
               onClick={() => setCurrentPage(i + 1)}
               className={`px-4 py-2 rounded ${
-                currentPage === i + 1
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-gray-700"
+                currentPage === i + 1 ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"
               }`}
             >
               {i + 1}
@@ -326,9 +305,8 @@ const BookingManagement = () => {
             </h2>
             <form onSubmit={handleModalSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium">Room ID</label>
-                <input
-                  type="number"
+                <label className="block text-sm font-medium">Room</label>
+                <select
                   value={modalBooking.roomId}
                   onChange={(e) =>
                     setModalBooking({
@@ -338,7 +316,16 @@ const BookingManagement = () => {
                   }
                   className="w-full border p-2 rounded"
                   required
-                />
+                >
+                  <option value={0} disabled>
+                    -- Pilih Room --
+                  </option>
+                  {rooms.map((room) => (
+                    <option key={room.id} value={room.id}>
+                      {room.name}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium">Booking Date</label>
@@ -356,9 +343,8 @@ const BookingManagement = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium">Booked By (User ID)</label>
-                <input
-                  type="number"
+                <label className="block text-sm font-medium">Booked By</label>
+                <select
                   value={modalBooking.bookedBy}
                   onChange={(e) =>
                     setModalBooking({
@@ -368,22 +354,16 @@ const BookingManagement = () => {
                   }
                   className="w-full border p-2 rounded"
                   required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Price</label>
-                <input
-                  type="number"
-                  value={modalBooking.price}
-                  onChange={(e) =>
-                    setModalBooking({
-                      ...modalBooking,
-                      price: Number(e.target.value),
-                    })
-                  }
-                  className="w-full border p-2 rounded"
-                  required
-                />
+                >
+                  <option value={0} disabled>
+                    -- Pilih User --
+                  </option>
+                  {users.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.name}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="flex justify-end space-x-2">
                 <button
@@ -393,10 +373,7 @@ const BookingManagement = () => {
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  className="bg-blue-500 text-white px-4 py-2 rounded"
-                >
+                <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
                   {isEditMode ? "Save Changes" : "Save"}
                 </button>
               </div>
