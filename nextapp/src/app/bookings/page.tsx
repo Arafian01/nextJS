@@ -1,24 +1,39 @@
 "use client";
 import { useState, useEffect } from "react";
 
+// Tipe data untuk Booking, Room, dan User
 type Booking = {
   id: number;
-  roomId: number; // ID ruangan yang dipesan
-  bookingDate: string; // Format YYYY-MM-DD, sesuai dengan input type date
-  bookedBy: number; // ID user yang memesan
+  roomId: number;      // ID ruangan yang dipesan
+  bookingDate: string; // Format YYYY-MM-DD
+  bookedBy: number;    // ID user yang memesan
   price: number;
+};
+
+type RoomData = {
+  id: number;
+  name: string;
+  // properti lain tidak ditampilkan di sini
+};
+
+type UserData = {
+  id: number;
+  name: string;
+  email: string;
 };
 
 const BookingManagement = () => {
   // State utama
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [rooms, setRooms] = useState<RoomData[]>([]);
+  const [users, setUsers] = useState<UserData[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  // State modal untuk tambah & edit
+  // State modal untuk tambah/edit
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const initialModalBooking: Booking = {
@@ -41,7 +56,7 @@ const BookingManagement = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  // Ambil data dummy dari bookings.json
+  // Fetch data dari bookings.json, rooms.json, dan users.json
   useEffect(() => {
     fetch("/bookings.json")
       .then((res) => res.json())
@@ -49,28 +64,55 @@ const BookingManagement = () => {
       .catch((err) => console.error("Error fetching bookings:", err));
   }, []);
 
-  // Reset halaman ke 1 saat search berubah
+  useEffect(() => {
+    fetch("/rooms.json")
+      .then((res) => res.json())
+      .then((data) => setRooms(data))
+      .catch((err) => console.error("Error fetching rooms:", err));
+  }, []);
+
+  useEffect(() => {
+    fetch("/users.json")
+      .then((res) => res.json())
+      .then((data) => setUsers(data))
+      .catch((err) => console.error("Error fetching users:", err));
+  }, []);
+
+  // Reset halaman ke 1 saat search query berubah
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
 
-  // Fungsi search (mencari di semua field)
+  // Helper functions untuk mendapatkan nama Room dan User
+  const getRoomName = (roomId: number): string => {
+    const room = rooms.find((r) => r.id === roomId);
+    return room ? room.name : "Unknown Room";
+  };
+
+  const getUserName = (userId: number): string => {
+    const user = users.find((u) => u.id === userId);
+    return user ? user.name : "Unknown User";
+  };
+
+  // Filtering: cari berdasarkan id, room name, booking date, user name, atau price
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
 
   const filteredBookings = bookings.filter((booking) => {
     const searchLower = searchQuery.toLowerCase();
+    const roomName = getRoomName(booking.roomId).toLowerCase();
+    const bookedByName = getUserName(booking.bookedBy).toLowerCase();
     return (
       booking.id.toString().includes(searchLower) ||
-      booking.roomId.toString().includes(searchLower) ||
+      roomName.includes(searchLower) ||
       booking.bookingDate.toLowerCase().includes(searchLower) ||
-      booking.bookedBy.toString().includes(searchLower) ||
+      bookedByName.includes(searchLower) ||
       booking.price.toString().includes(searchLower)
     );
   });
 
-  // Fungsi sorting berdasarkan field
+  // Sorting: jika sortField adalah "room" atau "bookedBy", sorting berdasarkan nama
   const handleSort = (field: string) => {
     if (sortField === field) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -82,9 +124,19 @@ const BookingManagement = () => {
 
   const sortedBookings = [...filteredBookings].sort((a, b) => {
     if (!sortField) return 0;
+    if (sortField === "room") {
+      const aName = getRoomName(a.roomId);
+      const bName = getRoomName(b.roomId);
+      return sortOrder === "asc" ? aName.localeCompare(bName) : bName.localeCompare(aName);
+    }
+    if (sortField === "bookedBy") {
+      const aName = getUserName(a.bookedBy);
+      const bName = getUserName(b.bookedBy);
+      return sortOrder === "asc" ? aName.localeCompare(bName) : bName.localeCompare(aName);
+    }
+    // Untuk field lainnya (misal id, bookingDate, price)
     const aValue = a[sortField as keyof Booking];
     const bValue = b[sortField as keyof Booking];
-
     if (typeof aValue === "number" && typeof bValue === "number") {
       return sortOrder === "asc" ? aValue - bValue : bValue - aValue;
     } else {
@@ -107,18 +159,16 @@ const BookingManagement = () => {
     return "";
   };
 
-  // Fungsi CRUD: Tambah atau Edit Booking melalui modal
+  // CRUD: Tambah/Edit Booking
   const handleModalSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (isEditMode) {
-      // Edit: Update data booking
+      // Update booking
       setBookings((prev) =>
-        prev.map((booking) =>
-          booking.id === modalBooking.id ? modalBooking : booking
-        )
+        prev.map((booking) => (booking.id === modalBooking.id ? modalBooking : booking))
       );
     } else {
-      // Tambah: Buat ID baru dan tambahkan booking
+      // Tambah booking baru dengan ID baru
       const newId = bookings.length > 0 ? Math.max(...bookings.map((b) => b.id)) + 1 : 1;
       setBookings((prev) => [...prev, { ...modalBooking, id: newId }]);
     }
@@ -126,17 +176,16 @@ const BookingManagement = () => {
     setModalBooking(initialModalBooking);
   };
 
-  // Fungsi delete booking dengan konfirmasi
   const handleDeleteBooking = (id: number) => {
     if (confirm("Apakah Anda yakin ingin menghapus booking ini?")) {
-      setBookings((prev) => prev.filter((booking) => booking.id !== id));
+      setBookings((prev) => prev.filter((b) => b.id !== id));
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center p-9">
       <div className="bg-white rounded-lg shadow-md p-6 w-full max-w-7xl h-full">
-        {/* Header Section */}
+        {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <input
             type="text"
@@ -157,7 +206,7 @@ const BookingManagement = () => {
           </button>
         </div>
 
-        {/* Table Section */}
+        {/* Tabel */}
         <div className="overflow-x-auto shadow-lg">
           <table className="w-full text-sm text-left text-gray-500">
             <thead className="text-sm text-gray-700 uppercase bg-white">
@@ -169,10 +218,10 @@ const BookingManagement = () => {
                   ID {renderSortIndicator("id")}
                 </th>
                 <th
-                  onClick={() => handleSort("roomId")}
+                  onClick={() => handleSort("room")}
                   className="px-6 py-3 text-center cursor-pointer select-none"
                 >
-                  Room ID {renderSortIndicator("roomId")}
+                  Room {renderSortIndicator("room")}
                 </th>
                 <th
                   onClick={() => handleSort("bookingDate")}
@@ -197,16 +246,13 @@ const BookingManagement = () => {
             </thead>
             <tbody>
               {currentBookings.map((booking) => (
-                <tr
-                  key={booking.id}
-                  className="bg-white border-b hover:bg-gray-50"
-                >
+                <tr key={booking.id} className="bg-white border-b hover:bg-gray-50">
                   <td className="px-4 py-2 text-center">{booking.id}</td>
-                  <td className="px-4 py-2 text-center">{booking.roomId}</td>
+                  <td className="px-4 py-2 text-center">{getRoomName(booking.roomId)}</td>
                   <td className="px-4 py-2 text-center">
                     {new Date(booking.bookingDate).toLocaleDateString("id-ID")}
                   </td>
-                  <td className="px-4 py-2 text-center">{booking.bookedBy}</td>
+                  <td className="px-4 py-2 text-center">{getUserName(booking.bookedBy)}</td>
                   <td className="px-4 py-2 text-center">
                     {new Intl.NumberFormat("id-ID", {
                       style: "currency",
@@ -239,7 +285,7 @@ const BookingManagement = () => {
           </table>
         </div>
 
-        {/* Pagination Section */}
+        {/* Pagination */}
         <div className="flex justify-center items-center mt-4 space-x-2">
           <button
             onClick={() => setCurrentPage(currentPage - 1)}
@@ -271,7 +317,7 @@ const BookingManagement = () => {
         </div>
       </div>
 
-      {/* Modal Section untuk Tambah/Edit Booking */}
+      {/* Modal untuk Tambah/Edit Booking */}
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-lg p-6 w-96">
